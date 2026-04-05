@@ -1,0 +1,28 @@
+{
+  "name": "library-management-system",
+  "version": "1.0.0",
+  "description": "A full-stack Library Management System with MySQL stored procedures, triggers, views, and a Node.js/Express API connected to a dark-themed frontend dashboard.",
+  "main": "library-api/server.js",
+  "scripts": {
+    "start": "node library-api/server.js",
+    "dev": "nodemon library-api/server.js"
+  },
+  "keywords": [
+    "mysql",
+    "library",
+    "management",
+    "sql",
+    "stored-procedures",
+    "triggers",
+    "views",
+    "nodejs",
+    "express",
+    "fullstack"
+  ],
+  "author": "sudipta0008",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sudipta0008/library-management-system"
+  }
+}
