@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "library_management.html",
+      "src": "library_managementt.html",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/library_management.html"
+      "dest": "/library_managementt.html"
     }
   ]
 }
