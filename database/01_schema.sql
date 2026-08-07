@@ -29,7 +29,7 @@ CREATE TABLE members
 
     phone VARCHAR(20),
 
-    joined_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    joined_date DATE NOT NULL DEFAULT (CURRENT_DATE),
 
     status ENUM
     (
@@ -64,23 +64,21 @@ CREATE TABLE books
 
     available_copies INT NOT NULL DEFAULT 1,
 
-    added_date DATE DEFAULT CURRENT_DATE,
+    added_date DATE DEFAULT (CURRENT_DATE),
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT chk_total_copies
-    CHECK(total_copies >= 0),
+    CONSTRAINT chk_total_positive
+    CHECK(total_copies > 0),
 
     CONSTRAINT chk_available_copies
     CHECK(available_copies >= 0),
 
     CONSTRAINT chk_available_less_than_total
     CHECK(available_copies <= total_copies)
-    CONSTRAINT chk_total_positive
-    CHECK(total_copies>0)
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -195,23 +193,21 @@ CREATE TABLE audit_log
 -- ============================================================
 -- INDEXES
 -- ============================================================
+-- Note: email (members) and isbn (books) already have a UNIQUE
+-- constraint, which MySQL indexes automatically. No separate
+-- index is created for them here to avoid duplication.
 
 CREATE INDEX idx_books_title
 ON books(title);
 
 CREATE INDEX idx_books_author
 ON books(author);
-CREATE INDEX idx_books_isbn
-ON books(isbn);
 
 CREATE INDEX idx_books_genre
 ON books(genre);
 
 CREATE INDEX idx_member_name
 ON members(name);
-
-CREATE INDEX idx_member_email
-ON members(email);
 
 CREATE INDEX idx_loans_member_status
 ON loans(member_id,status);
