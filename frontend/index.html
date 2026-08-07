@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LibraryOS — Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1c2030;--surface3:#232840;
+  --border:#2a2f45;--border2:#3a4060;
+  --text:#e8ecf5;--muted:#7880a0;--faint:#3d4560;
+  --accent:#7c9fff;--accent2:#5b7fe8;--gold:#f0c060;--green:#5ecb8a;--red:#e05c6a;--orange:#f0904a;
+  --font-display:'Playfair Display',serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.6;min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.logo-title{font-family:var(--font-display);font-size:18px;letter-spacing:-0.3px}
+.logo-sub{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.nav{padding:16px 0;flex:1}
+.nav-section{padding:4px 16px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin:12px 0 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent);background:rgba(124,159,255,.08);border-left-color:var(--accent)}
+.nav-icon{width:15px;text-align:center;font-size:13px}
+.sidebar-foot{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.page-title{font-family:var(--font-display);font-size:17px;letter-spacing:-0.2px}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.badge{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500}
+.badge-blue{background:rgba(124,159,255,.15);color:var(--accent)}
+.badge-green{background:rgba(94,203,138,.15);color:var(--green)}
+.badge-red{background:rgba(224,92,106,.15);color:var(--red)}
+.badge-gold{background:rgba(240,192,96,.12);color:var(--gold)}
+.badge-orange{background:rgba(240,144,74,.15);color:var(--orange)}
+.content{padding:24px 28px;flex:1}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab{padding:10px 18px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+.stat-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.stat-num{font-family:var(--font-display);font-size:28px;letter-spacing:-0.5px}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.table-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.table-head-title{font-size:13px;font-weight:500}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--surface2)}
+th{padding:10px 16px;text-align:left;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-muted{color:var(--muted)}
+.td-mono{font-family:var(--font-mono);font-size:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;letter-spacing:.5px;color:var(--muted);text-transform:uppercase}
+.form-input,.form-select{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);font-family:var(--font-body);outline:none;transition:border .15s;width:100%}
+.form-input:focus,.form-select:focus{border-color:var(--accent)}
+.form-select option{background:var(--surface)}
+.btn{padding:9px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font-body)}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-primary:hover{background:var(--accent)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn-danger{background:rgba(224,92,106,.15);color:var(--red);border:1px solid rgba(224,92,106,.3)}
+.btn-danger:hover{background:rgba(224,92,106,.25)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.panel-title{font-size:13px;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sql-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sql-head{background:var(--surface2);padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sql-dot{width:10px;height:10px;border-radius:50%}
+.sql-code{font-family:var(--font-mono);font-size:12px;padding:16px;background:#090b10;color:#a8b8e8;line-height:1.8;overflow-x:auto;white-space:pre}
+.kw{color:#7c9fff}.fn{color:#f0c060}.str{color:#5ecb8a}.cmt{color:#4a5580}.num{color:#f0904a}
+.toast-area{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;font-size:13px;max-width:360px;animation:slideIn .2s ease;display:flex;align-items:flex-start;gap:10px}
+.toast.success{border-color:rgba(94,203,138,.4)}
+.toast.error{border-color:rgba(224,92,106,.4)}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.mini-bar-wrap{display:flex;flex-direction:column;gap:6px}
+.mini-bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.mini-bar-label{width:80px;color:var(--muted);text-align:right;flex-shrink:0}
+.mini-bar-track{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.mini-bar-val{width:30px;color:var(--muted);font-family:var(--font-mono);font-size:11px}
+.log-entry{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.log-entry:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.log-body{flex:1}
+.log-type{font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+.log-desc{font-size:12px;color:var(--muted);margin-top:2px}
+.log-time{font-size:11px;color:var(--faint);font-family:var(--font-mono);white-space:nowrap}
+.api-indicator{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--border)}
+.api-indicator.ok{color:var(--green);border-color:rgba(94,203,138,.3)}
+.api-indicator.err{color:var(--red);border-color:rgba(224,92,106,.3)}
+.api-indicator.loading{color:var(--muted)}
+.error-box{background:rgba(224,92,106,.08);border:1px solid rgba(224,92,106,.25);border-radius:8px;padding:14px 16px;color:var(--red);font-size:13px;margin-bottom:12px}
+@media(max-width:900px){
+  .sidebar{display:none}.stat-grid{grid-template-columns:1fr 1fr}.two-col,.three-col{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-title">LibraryOS</div>
+    <div class="logo-sub">Management Console</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="switchPage('dashboard')"><span class="nav-icon">◈</span> Dashboard</div>
+    <div class="nav-item" onclick="switchPage('books')"><span class="nav-icon">◻</span> Books</div>
+    <div class="nav-section">Operations</div>
+    <div class="nav-item" onclick="switchPage('loans')"><span class="nav-icon">⇄</span> Issue / Return</div>
+    <div class="nav-item" onclick="switchPage('members')"><span class="nav-icon">◎</span> Members</div>
+    <div class="nav-section">System</div>
+    <div class="nav-item" onclick="switchPage('sql')"><span class="nav-icon">▷</span> SQL Explorer</div>
+    <div class="nav-item" onclick="switchPage('audit')"><span class="nav-icon">≡</span> Audit Log</div>
+  </nav>
+  <div class="sidebar-foot">MySQL 8.0 · library_db<br/>Library Management v2.0</div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <div class="api-indicator loading" id="api-status">● Connecting…</div>
+      <span class="badge badge-blue" id="time-badge"></span>
+    </div>
+  </div>
+  <div class="content" id="page-content">
+    <div style="color:var(--muted);padding:40px;text-align:center">Connecting to MySQL…</div>
+  </div>
+</div>
+
+</div>
+<div class="toast-area" id="toast-area"></div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────
+// Relative URL — works because Express serves this file at http://localhost:3000
+const API = '/api';
+
+// ── NAV ──────────────────────────────────────────────────────
+const NAV_INDEX  = {dashboard:0,books:1,loans:2,members:3,sql:4,audit:5};
+const NAV_TITLES = {dashboard:'Dashboard',books:'Book Inventory',loans:'Issue & Return',members:'Members',sql:'SQL Explorer',audit:'Audit Log'};
+
+function switchPage(p){
+  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',i===NAV_INDEX[p]));
+  document.getElementById('page-title').textContent = NAV_TITLES[p];
+  renderPage(p);
+}
+
+async function renderPage(p){
+  document.getElementById('page-content').innerHTML =
+    `<div style="color:var(--muted);padding:40px;text-align:center;font-size:13px">Loading…</div>`;
+  try {
+    if(p==='dashboard') await renderDashboard();
+    else if(p==='books')   await renderBooks();
+    else if(p==='loans')   await renderLoans();
+    else if(p==='members') await renderMembers();
+    else if(p==='sql')     await renderSQL();
+    else if(p==='audit')   await renderAudit();
+  } catch(e){
+    document.getElementById('page-content').innerHTML =
+      `<div class="error-box">❌ Failed to load: ${e.message}</div>`;
+  }
+}
+
+// ── API HELPER ───────────────────────────────────────────────
+async function api(path, opts={}){
+  const res  = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ── API STATUS CHECK ─────────────────────────────────────────
+async function checkAPI(){
+  const el = document.getElementById('api-status');
+  try {
+    await api('/dashboard');
+    el.textContent = '● MySQL Connected';
+    el.className   = 'api-indicator ok';
+  } catch {
+    el.textContent = '● API Offline';
+    el.className   = 'api-indicator err';
+  }
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+async function renderDashboard(){
+  const [stats, activeLoans, auditLog, genreReport] = await Promise.all([
+    api('/dashboard'),
+    api('/loans/active'),
+    api('/audit'),
+    api('/views/genre-report'),
+  ]);
+
+  const recent = auditLog.slice(0,4);
+  const maxG   = Math.max(...genreReport.map(g=>Number(g.total_loans)),1);
+
+  document.getElementById('page-content').innerHTML = `
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total Books</div><div class="stat-num" style="color:var(--accent)">${stats.total_books}</div><div class="stat-sub">${stats.available_books} available now</div></div>
+    <div class="stat-card"><div class="stat-label">Active Loans</div><div class="stat-num" style="color:var(--gold)">${stats.active_loans}</div><div class="stat-sub">${stats.overdue_loans} overdue</div></div>
+    <div class="stat-card"><div class="stat-label">Unpaid Fines</div><div class="stat-num" style="color:var(--red)">₹${stats.unpaid_fines}</div><div class="stat-sub">Auto-suspend at ₹200</div></div>
+    <div class="stat-card"><div class="stat-label">Members</div><div class="stat-num" style="color:var(--green)">${stats.total_members}</div><div class="stat-sub">${stats.suspended_members} suspended</div></div>
+  </div>
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-title">📊 Loans by Genre</div>
+      <div class="mini-bar-wrap">
+        ${genreReport.map(g=>`
+        <div class="mini-bar-row">
+          <div class="mini-bar-label">${g.genre}</div>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(Number(g.total_loans)/maxG*100)}%;background:var(--accent2)"></div></div>
+          <div class="mini-bar-val">${g.total_loans}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">⚡ Recent Audit Events</div>
+      ${recent.map(e=>`
+      <div class="log-entry">
+        <div class="log-dot" style="background:${logColor(e.action||e.type||e.event_type)}"></div>
+        <div class="log-body">
+          <div class="log-type" style="color:${logColor(e.action||e.type||e.event_type)}">${e.action||e.type||e.event_type||'EVENT'}</div>
+          <div class="log-desc">${e.description||e.desc||''}</div>
+        </div>
+        <div class="log-time">${fmtTime(e.created_at||e.time)}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📋 Active Loans — <span style="font-weight:400;color:var(--muted)">vw_active_loans</span></div>
+    <div class="table-wrap" style="border:none">
+      ${loansTable(activeLoans)}
+    </div>
+  </div>`;
+}
+
+function loansTable(loans){
+  if(!loans.length) return `<div style="padding:20px;color:var(--muted);text-align:center">No active loans</div>`;
+  // Detect column names flexibly (handles different MySQL view schemas)
+  const memberCol = detectCol(loans[0], ['member_name','name','member']);
+  const bookCol   = detectCol(loans[0], ['book_title','title','book']);
+  const loanIdCol = detectCol(loans[0], ['loan_id','id']);
+  return `<table>
+    <thead><tr><th>#</th><th>Member</th><th>Book</th><th>Loan Date</th><th>Due Date</th><th>Status</th><th>Fine</th></tr></thead>
+    <tbody>${loans.map(l=>`
+    <tr>
+      <td class="td-mono td-muted">#${l[loanIdCol]||'—'}</td>
+      <td>${l[memberCol]||'—'}</td>
+      <td>${l[bookCol]||'—'}</td>
+      <td class="td-mono">${fmtDate(l.loan_date)}</td>
+      <td class="td-mono">${fmtDate(l.due_date)}</td>
+      <td><span class="badge ${(l.status||'').includes('over')?'badge-red':'badge-blue'}">${l.status||'active'}</span></td>
+      <td class="td-mono" style="color:${(l.fine||l.fine_amount||0)>0?'var(--red)':'var(--muted)'}">₹${l.fine||l.fine_amount||0}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ── BOOKS ────────────────────────────────────────────────────
+async function renderBooks(){
+  const books = await api('/books');
+  document.getElementById('page-content').innerHTML = `
+  <div class="panel">
+    <div class="panel-title" style="justify-content:space-between">
+      <span>📚 Book Inventory — <span style="font-weight:400;color:var(--muted)">vw_book_inventory</span></span>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-book-panel').style.display='block'">+ Add Book</button>
+    </div>
+    <div id="add-book-panel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="b-title" placeholder="Book title"/></div>
+        <div class="form-group"><label class="form-label">Author</label><input class="form-input" id="b-author" placeholder="Author name"/></div>
+        <div class="form-group"><label class="form-label">Genre</label>
+          <select class="form-select" id="b-genre">
+            <option>Fiction</option><option>Self-Help</option><option>Technology</option><option>History</option><option>Finance</option><option>Sci-Fi</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Copies</label><input class="form-input" id="b-copies" type="number" min="1" value="1"/></div>
+        <div class="form-group"><label class="form-label">ISBN (optional)</label><input class="form-input" id="b-isbn" placeholder="978-..."/></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" id="add-book-btn" onclick="addBook()">Add Book</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('add-book-panel').style.display='none'">Cancel</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Title</th><th>Author</th><th>Genre</th><th>Total</th><th>Available</th><th>Availability</th></tr></thead>
+      <tbody>
+      ${books.map(b=>{
+        const total = Number(b.total_copies||b.total||0);
+        const avail = Number(b.available_copies||b.available||0);
+        const pct   = total>0?Math.round(avail/total*100):0;
+        const col   = avail===0?'var(--red)':avail<total?'var(--gold)':'var(--green)';
+        const id    = b.book_id||b.id;
+        return `<tr>
+          <td class="td-muted td-mono">#${id}</td>
+          <td><strong style="font-weight:500">${b.title}</strong></td>
+          <td class="td-muted">${b.author}</td>
+          <td><span class="badge badge-blue" style="font-size:10px">${b.genre||'—'}</span></td>
+          <td class="td-mono">${total}</td>
+          <td class="td-mono" style="color:${col}">${avail}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:4px;background:var(--surface2);border-radius:2px;min-width:60px">
+                <div style="width:${pct}%;height:100%;background:${col};border-radius:2px"></div>
+              </div>
+              <span style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">${pct}%</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+async function addBook(){
+  const title  = document.getElementById('b-title').value.trim();
+  const author = document.getElementById('b-author').value.trim();
+  const genre  = document.getElementById('b-genre').value;
+  const copies = parseInt(document.getElementById('b-copies').value)||1;
+  const isbn   = document.getElementById('b-isbn').value.trim();
+  if(!title||!author){ toast('Please fill in title and author','error'); return; }
+  const btn = document.getElementById('add-book-btn');
+  btn.disabled=true; btn.textContent='Adding…';
+  try {
+    const res = await api('/books', {method:'POST', body:JSON.stringify({title,author,genre,copies,isbn})});
+    toast(res.message,'success');
+    await renderBooks();
+  } catch(e){ toast(e.message,'error'); btn.disabled=false; btn.textContent='Add Book'; }
+}
+
+// ── LOANS ────────────────────────────────────────────────────
+async function renderLoans(){
+  const [members, books, allLoans, activeLoans] = await Promise.all([
+    api('/members'),
+    api('/books'),
+    api('/loans'),
+    api('/loans/active'),
+  ]);
+  const activeMembers = members.filter(m=>(m.status||'').toLowerCase()==='active');
+  const availBooks    = books.filter(b=>Number(b.available_copies||b.available||0)>0);
+
+  document.getElementById('page-content').innerHTML = `
+  <div class="tabs">
+    <div class="tab active" id="tab-issue"   onclick="showLoanTab('issue')">Issue Book</div>
+    <div class="tab"        id="tab-return"  onclick="showLoanTab('return')">Return Book</div>
+    <div class="tab"        id="tab-history" onclick="showLoanTab('history')">Loan History</div>
+  </div>
+
+  <div id="loan-issue">
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Issue a Book — <span style="font-weight:400;color:var(--muted)">CALL sp_issue_book()</span></div>
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Member</label>
+          <select class="form-select" id="issue-member">
+            ${activeMembers.map(m=>`<option value="${m.member_id||m.id}">${m.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Book</label>
+          <select class="form-select" id="issue-book">
+            ${availBooks.map(b=>`<option value="${b.book_id||b.id}">${b.title} (${b.available_copies||b.available} left)</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:16px"><label class="form-label">Loan Period</label>
+          <select class="form-select" id="issue-days">
+            <option value="7">7 days</option><option value="14" selected>14 days</option>
+            <option value="21">21 days</option><option value="30">30 days</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="issue-btn" onclick="issueBook()">Issue Book →</button>
+      </div>
+      <div class="panel">
+        <div class="panel-title">sp_issue_book() — MySQL Procedure</div>
+        <div class="sql-code" style="font-size:11px;border-radius:8px;background:#090b10;padding:14px;line-height:1.9">
+<span class="kw">CALL</span> <span class="fn">sp_issue_book</span>(
+  p_member_id, p_book_id, p_days,
+  @loan_id, @msg
+);
+<span class="cmt">-- Checks: active member, available copies,</span>
+<span class="cmt">-- 3-loan limit, then INSERTs loan row</span>
+<span class="cmt">-- Trigger fires → audit_log entry written</span>
+<span class="kw">SELECT</span> @loan_id, @msg;</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loan-return" style="display:none">
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Return a Book — <span style="font-weight:400;color:var(--muted)">CALL sp_return_book()</span></div>
+        <div class="form-group" style="margin-bottom:16px"><label class="form-label">Select Active Loan</label>
+          <select class="form-select" id="return-loan">
+            ${activeLoans.length
+              ? activeLoans.map(l=>{
+                  const id = l.loan_id||l.id;
+                  const mn = l.member_name||l.name||'Member';
+                  const bt = l.book_title||l.title||'Book';
+                  return `<option value="${id}">#${id} — ${mn} · ${bt}</option>`;
+                }).join('')
+              : '<option disabled>No active loans</option>'}
+          </select>
+        </div>
+        <button class="btn btn-danger" id="return-btn" onclick="returnBook()" ${!activeLoans.length?'disabled':''}>Process Return</button>
+      </div>
+      <div class="panel">
+        <div class="panel-title">sp_return_book() — Fine Logic</div>
+        <div class="sql-code" style="font-size:11px;border-radius:8px;background:#090b10;padding:14px;line-height:1.9">
+<span class="kw">CALL</span> <span class="fn">sp_return_book</span>(p_loan_id, @fine, @msg);
+
+<span class="cmt">-- Calculates: DATEDIFF(NOW(), due_date) * 5</span>
+<span class="cmt">-- If overdue → inserts into fines table</span>
+<span class="cmt">-- TRIGGER: if total unpaid > ₹200</span>
+<span class="cmt">--   → UPDATE members SET status='suspended'</span>
+<span class="kw">SELECT</span> @fine, @msg;</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loan-history" style="display:none">
+    <div class="table-wrap">
+      <div class="table-head"><span class="table-head-title">All Loans</span></div>
+      <table>
+        <thead><tr><th>#</th><th>Member</th><th>Book</th><th>Loan Date</th><th>Due</th><th>Return</th><th>Fine</th><th>Status</th></tr></thead>
+        <tbody>
+        ${allLoans.map(l=>`
+        <tr>
+          <td class="td-mono td-muted">#${l.loan_id||l.id}</td>
+          <td>${l.member_name||'—'}</td>
+          <td>${l.book_title||'—'}</td>
+          <td class="td-mono">${fmtDate(l.loan_date)}</td>
+          <td class="td-mono">${fmtDate(l.due_date)}</td>
+          <td class="td-mono td-muted">${l.return_date?fmtDate(l.return_date):'—'}</td>
+          <td class="td-mono" style="color:${(l.fine||l.fine_amount||0)>0?'var(--red)':'var(--muted)'}">₹${l.fine||l.fine_amount||0}</td>
+          <td><span class="badge ${(l.status||'').includes('over')?'badge-red':(l.status||'').includes('return')?'badge-green':'badge-blue'}">${l.status||'—'}</span></td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function showLoanTab(t){
+  ['issue','return','history'].forEach(x=>{
+    document.getElementById('loan-'+x).style.display = x===t?'block':'none';
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+  });
+}
+
+async function issueBook(){
+  const member_id = parseInt(document.getElementById('issue-member').value);
+  const book_id   = parseInt(document.getElementById('issue-book').value);
+  const days      = parseInt(document.getElementById('issue-days').value);
+  const btn = document.getElementById('issue-btn');
+  btn.disabled=true; btn.textContent='Issuing…';
+  try {
+    const res = await api('/loans/issue', {method:'POST', body:JSON.stringify({member_id,book_id,days})});
+    toast(res.message||`Loan #${res.loan_id} created`,'success');
+    await renderLoans();
+  } catch(e){ toast(e.message,'error'); btn.disabled=false; btn.textContent='Issue Book →'; }
+}
+
+async function returnBook(){
+  const loan_id = parseInt(document.getElementById('return-loan').value);
+  const btn = document.getElementById('return-btn');
+  btn.disabled=true; btn.textContent='Processing…';
+  try {
+    // Your server uses POST /api/loans/return with { loan_id } in body
+    const res = await api('/loans/return', {method:'POST', body:JSON.stringify({loan_id})});
+    const fineMsg = res.fine > 0 ? ` Fine: ₹${res.fine}` : '';
+    toast((res.message||'Returned')+fineMsg, 'success');
+    await renderLoans();
+  } catch(e){ toast(e.message,'error'); btn.disabled=false; btn.textContent='Process Return'; }
+}
+
+// ── MEMBERS ──────────────────────────────────────────────────
+async function renderMembers(){
+  const members = await api('/members');
+  document.getElementById('page-content').innerHTML = `
+  <div class="panel">
+    <div class="panel-title" style="justify-content:space-between">
+      <span>👥 Members — <span style="font-weight:400;color:var(--muted)">vw_member_summary</span></span>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-member-panel').style.display='block'">+ Add Member</button>
+    </div>
+    <div id="add-member-panel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="m-name" placeholder="Full name"/></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="m-email" placeholder="email@example.com"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-phone" placeholder="Phone number"/></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" id="add-member-btn" onclick="addMember()">Add Member</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('add-member-panel').style.display='none'">Cancel</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Status</th><th>Active Loans</th><th>Unpaid Fines</th><th>Actions</th></tr></thead>
+      <tbody>
+      ${members.map(m=>{
+        const id      = m.member_id||m.id;
+        const status  = (m.status||'active').toLowerCase();
+        const loans   = Number(m.active_loans||m.loans||0);
+        const unpaid  = Number(m.unpaid_fines||m.fines||0);
+        return `<tr>
+          <td class="td-mono td-muted">#${id}</td>
+          <td style="font-weight:500">${m.name}</td>
+          <td class="td-muted">${m.email}</td>
+          <td><span class="badge ${status==='active'?'badge-green':status==='suspended'?'badge-red':'badge-orange'}">${status}</span></td>
+          <td class="td-mono">${loans}</td>
+          <td class="td-mono" style="color:${unpaid>0?'var(--red)':'var(--muted)'}">₹${unpaid}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            ${status==='suspended'?`<button class="btn btn-ghost btn-sm" onclick="reactivateMember(${id})">Reactivate</button>`:''}
+            ${unpaid>0?`<button class="btn btn-ghost btn-sm" onclick="payFines(${id})">Pay Fines</button>`:''}
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+async function addMember(){
+  const name=document.getElementById('m-name').value.trim();
+  const email=document.getElementById('m-email').value.trim();
+  const phone=document.getElementById('m-phone').value.trim();
+  if(!name||!email){ toast('Name and email are required','error'); return; }
+  const btn=document.getElementById('add-member-btn');
+  btn.disabled=true; btn.textContent='Adding…';
+  try {
+    const res = await api('/members',{method:'POST',body:JSON.stringify({name,email,phone})});
+    toast(res.message,'success');
+    await renderMembers();
+  } catch(e){ toast(e.message,'error'); btn.disabled=false; btn.textContent='Add Member'; }
+}
+
+async function reactivateMember(id){
+  try {
+    const res = await api(`/members/${id}/reactivate`,{method:'PATCH'});
+    toast(res.message,'success');
+    await renderMembers();
+  } catch(e){ toast(e.message,'error'); }
+}
+
+async function payFines(id){
+  try {
+    const res = await api(`/members/${id}/pay-fines`,{method:'PATCH'});
+    toast(res.message,'success');
+    await renderMembers();
+  } catch(e){ toast(e.message,'error'); }
+}
+
+// ── SQL EXPLORER ─────────────────────────────────────────────
+const SQL_ENDPOINTS = {
+  'vw_active_loans':    { path:'/loans/active',        sql:'SELECT * FROM vw_active_loans;' },
+  'vw_member_summary':  { path:'/members',             sql:'SELECT * FROM vw_member_summary;' },
+  'vw_book_inventory':  { path:'/books',               sql:'SELECT * FROM vw_book_inventory;' },
+  'Overdue Loans':      { path:'/views/overdue-fines', sql:"SELECT * FROM vw_active_loans WHERE status = 'overdue';" },
+  'Genre Report':       { path:'/views/genre-report',  sql:'-- Aggregated query on books + loans\nSELECT genre, COUNT(*) AS total_loans, ... FROM books JOIN loans GROUP BY genre;' },
+  'audit_log':          { path:'/audit',               sql:'SELECT * FROM audit_log ORDER BY created_at DESC LIMIT 100;' },
+};
+
+async function renderSQL(){
+  const firstName = Object.keys(SQL_ENDPOINTS)[0];
+  document.getElementById('page-content').innerHTML = `
+  <div class="three-col" style="margin-bottom:16px">
+    ${Object.keys(SQL_ENDPOINTS).map(k=>`
+    <button class="btn btn-ghost btn-sm" style="text-align:left;padding:10px 14px" onclick="runEndpoint('${k}')">${k}</button>`).join('')}
+  </div>
+  <div class="sql-panel">
+    <div class="sql-head">
+      <div class="sql-dot" style="background:#e05c6a"></div>
+      <div class="sql-dot" style="background:#f0c060"></div>
+      <div class="sql-dot" style="background:#5ecb8a"></div>
+      <span style="color:var(--muted);font-size:12px;margin-left:8px;font-family:var(--font-mono)">mysql> library_db</span>
+    </div>
+    <div class="sql-code" id="sql-query">${SQL_ENDPOINTS[firstName].sql}</div>
+  </div>
+  <div id="sql-result" style="margin-top:14px"></div>`;
+  runEndpoint(firstName);
+}
+
+async function runEndpoint(name){
+  const q = SQL_ENDPOINTS[name];
+  document.getElementById('sql-query').textContent = q.sql;
+  document.getElementById('sql-result').innerHTML = `<div class="panel" style="color:var(--muted)">Fetching…</div>`;
+  try {
+    const rows = await api(q.path);
+    const list = Array.isArray(rows)?rows:[rows];
+    if(!list.length){ document.getElementById('sql-result').innerHTML='<div class="panel" style="color:var(--muted)">Empty result set.</div>'; return; }
+    const cols = Object.keys(list[0]);
+    document.getElementById('sql-result').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-head-title">${name}</span>
+        <span class="badge badge-green">${list.length} row(s)</span>
+      </div>
+      <table>
+        <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+        <tbody>${list.map(r=>`<tr>${cols.map(c=>`<td class="${typeof r[c]==='number'?'td-mono':''}">${r[c]===null||r[c]===undefined?'<span class="td-muted">NULL</span>':r[c]}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  } catch(e){
+    document.getElementById('sql-result').innerHTML=`<div class="error-box">Error: ${e.message}</div>`;
+  }
+}
+
+// ── AUDIT LOG ────────────────────────────────────────────────
+async function renderAudit(){
+  const log = await api('/audit');
+  document.getElementById('page-content').innerHTML = `
+  <div class="panel">
+    <div class="panel-title">⚡ Audit Log — <span style="font-weight:400;color:var(--muted)">audit_log table (written by MySQL TRIGGERS)</span></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
+      Every loan, return, suspension, and fine is automatically logged via AFTER INSERT / AFTER UPDATE triggers on the loans and fines tables.
+    </div>
+    ${log.map(e=>{
+      const type = e.action||e.type||e.event_type||'EVENT';
+      const desc = e.description||e.desc||e.details||'';
+      const time = e.created_at||e.time||'';
+      const mid  = e.member_id||'';
+      const bid  = e.book_id||'';
+      return `
+    <div class="log-entry">
+      <div class="log-dot" style="background:${logColor(type)}"></div>
+      <div class="log-body">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="log-type" style="color:${logColor(type)}">${type}</div>
+          <div class="log-time">${fmtDateTime(time)}</div>
+        </div>
+        <div class="log-desc">${desc}</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--faint)">
+          ${mid?`member_id: ${mid}`:''}${bid?` · book_id: ${bid}`:''}
+        </div>
+      </div>
+    </div>`;}).join('')}
+  </div>`;
+}
+
+// ── UTILITIES ────────────────────────────────────────────────
+function detectCol(obj, candidates){
+  for(const c of candidates) if(c in obj) return c;
+  return candidates[0];
+}
+
+function logColor(type=''){
+  const t = type.toUpperCase();
+  if(t.includes('SUSPEND'))                               return 'var(--red)';
+  if(t.includes('RETURN')||t.includes('PAID')||t.includes('REACTIVAT')) return 'var(--green)';
+  if(t.includes('ADDED')||t.includes('FINE'))             return 'var(--gold)';
+  return 'var(--accent)';
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  return String(d).split('T')[0];
+}
+
+function fmtTime(d){
+  if(!d) return '';
+  const s = String(d);
+  return s.includes('T') ? s.split('T')[1].substring(0,8) : s.split(' ')[1]||s;
+}
+
+function fmtDateTime(d){
+  if(!d) return '';
+  return String(d).replace('T',' ').substring(0,19);
+}
+
+function toast(msg, type='success'){
+  const area = document.getElementById('toast-area');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span style="color:${type==='success'?'var(--green)':'var(--red)'}">●</span> <span>${msg}</span>`;
+  area.appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+
+// ── CLOCK ────────────────────────────────────────────────────
+setInterval(()=>{
+  document.getElementById('time-badge').textContent =
+    new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+document.getElementById('time-badge').textContent =
+  new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+// ── INIT ─────────────────────────────────────────────────────
+checkAPI();
+setInterval(checkAPI, 15000);
+renderPage('dashboard');
+</script>
+</body>
+</html>
