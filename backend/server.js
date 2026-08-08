@@ -1,24 +1,11 @@
 require('dotenv').config();
 
-const express = require('express');
-const mysql   = require('mysql2/promise');
-const cors    = require('cors');
-const path    = require('path');
-const app     = express();
 
-app.use(cors());
-app.use(express.json());
+const pool = require('./config/db');
+const path = require('path');
+const app = require('./app');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+
 
 // ── Serve Frontend ────────────────────────────────────────────
 // Put library_management.html in the SAME folder as server.js
@@ -27,59 +14,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
-// ── BOOKS ─────────────────────────────────────────────────────
-app.get('/api/books', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM vw_book_inventory');
-    res.json(rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/books', async (req, res) => {
-  try {
-    const { title, author, isbn, genre, copies } = req.body;
-    if (!title || !author) return res.status(400).json({ error: 'Title and author are required' });
-    const [result] = await pool.query(
-      'INSERT INTO books (title, author, isbn, genre, total_copies, available_copies) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, author, isbn || '', genre || 'Fiction', copies || 1, copies || 1]
-    );
-    res.status(201).json({ id: result.insertId, message: `"${title}" added to inventory` });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// ── MEMBERS ───────────────────────────────────────────────────
-app.get('/api/members', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM vw_member_summary');
-    res.json(rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/members', async (req, res) => {
-  try {
-    const { name, email, phone } = req.body;
-    if (!name || !email) return res.status(400).json({ error: 'Name and email are required' });
-    const [result] = await pool.query(
-      'INSERT INTO members (name, email, phone) VALUES (?, ?, ?)',
-      [name, email, phone || '']
-    );
-    res.status(201).json({ id: result.insertId, message: `Member "${name}" added` });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.patch('/api/members/:id/reactivate', async (req, res) => {
-  try {
-    await pool.query("UPDATE members SET status = 'active' WHERE member_id = ?", [req.params.id]);
-    res.json({ message: 'Member reactivated' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.patch('/api/members/:id/pay-fines', async (req, res) => {
-  try {
-    await pool.query('UPDATE fines SET paid = 1 WHERE member_id = ? AND paid = 0', [req.params.id]);
-    res.json({ message: 'Fines cleared' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
 
 // ── LOANS ─────────────────────────────────────────────────────
 app.get('/api/loans/active', async (req, res) => {
