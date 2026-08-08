@@ -15,68 +15,6 @@ app.get('/', (req, res) => {
 });
 
 
-// ── LOANS ─────────────────────────────────────────────────────
-app.get('/api/loans/active', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM vw_active_loans');
-    res.json(rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.get('/api/loans', async (req, res) => {
-  try {
-    const [rows] = await pool.query(`
-      SELECT l.loan_id,
-             m.name            AS member_name,
-             b.title           AS book_title,
-             l.loan_date,
-             l.due_date,
-             l.return_date,
-             COALESCE(l.fine_amount, 0) AS fine,
-             l.status
-      FROM   loans l
-      JOIN   members m ON l.member_id = m.member_id
-      JOIN   books   b ON l.book_id   = b.book_id
-      ORDER  BY l.loan_id DESC
-    `);
-    res.json(rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// Issue book — calls your stored procedure sp_issue_book
-// ── POST issue book ─────────────────────────────────────────
-app.post('/api/loans/issue', async (req, res) => {
-  try {
-    const { member_id, book_id, days } = req.body;
-    if (!member_id || !book_id) return res.status(400).json({ error: 'member_id and book_id are required' });
-    
-    // Step 1: Call the procedure
-    await pool.query('CALL sp_issue_book(?, ?, ?, @loan_id, @msg)', [member_id, book_id, days || 14]);
-    
-    // Step 2: Fetch the output variables separately
-    const [[result]] = await pool.query('SELECT @loan_id AS loan_id, @msg AS message');
-    
-    if (!result.loan_id) return res.status(400).json({ error: result.message || 'Could not issue book' });
-    res.status(201).json({ loan_id: result.loan_id, message: result.message });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// Return book — calls your stored procedure sp_return_book (triggers fire automatically in MySQL)
-app.post('/api/loans/return', async (req, res) => {
-  try {
-    const { loan_id } = req.body;
-    if (!loan_id) return res.status(400).json({ error: 'loan_id is required' });
-
-    // Step 1: Call the procedure
-    await pool.query('CALL sp_return_book(?, @fine, @msg)', [loan_id]);
-
-    // Step 2: Fetch output variables separately
-    const [[result]] = await pool.query('SELECT @fine AS fine, @msg AS message');
-
-    res.json({ fine: result.fine || 0, message: result.message });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
 // ── AUDIT LOG ─────────────────────────────────────────────────
 app.get('/api/audit', async (req, res) => {
   try {
