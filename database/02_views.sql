@@ -40,7 +40,7 @@ SELECT
     ) AS days_overdue,
 
     CASE
-        WHEN CURRENT_DATE > l.due_date
+        WHEN CURRENT_DATE() > l.due_date
             THEN 'Overdue'
         ELSE 'Active'
     END AS loan_status,
@@ -354,7 +354,7 @@ SELECT
 
                         l.return_date,
 
-                        CURRENT_DATE
+                        CURRENT_DATE()
 
                     ),
 

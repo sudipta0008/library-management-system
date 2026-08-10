@@ -4,18 +4,43 @@ const router = express.Router();
 
 const membersController = require("../controllers/membersController");
 
-router.get("/", membersController.getMembers);
+const authMiddleware = require("../middleware/authMiddleware");
 
-router.post("/", membersController.addMember);
+// Protect all member routes
+router.use(authMiddleware);
 
-router.patch(
-    "/:id/reactivate",
-    membersController.reactivateMember
+// -----------------------------
+// Members
+// -----------------------------
+
+router.get(
+  "/",
+  membersController.getMembers
+);
+
+router.post(
+  "/",
+  membersController.addMember
 );
 
 router.patch(
-    "/:id/pay-fines",
-    membersController.payFines
+  "/:id/reactivate",
+  membersController.reactivateMember
+);
+
+router.patch(
+  "/:id/pay-fines",
+  membersController.payFines
+);
+
+router.put(
+  "/:id",
+  membersController.updateMember
+);
+
+router.delete(
+  "/:id",
+  membersController.deleteMember
 );
 
 module.exports = router;

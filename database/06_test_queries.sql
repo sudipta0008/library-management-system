@@ -378,3 +378,15 @@ SELECT COUNT(*) FROM books;
 SELECT COUNT(*) FROM loans;
 SELECT COUNT(*) FROM fines;
 SELECT COUNT(*) FROM audit_log;
+UPDATE books b
+SET available_copies =
+    total_copies -
+    (
+        SELECT COUNT(*)
+        FROM loans l
+        WHERE l.book_id = b.book_id
+          AND l.return_date IS NULL
+    )
+WHERE b.book_id IS NOT NULL;
+SET SQL_SAFE_UPDATES = 0;
+SELECT * FROM loans;

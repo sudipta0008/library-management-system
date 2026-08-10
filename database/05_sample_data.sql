@@ -416,25 +416,6 @@ CURDATE()-INTERVAL 10 DAY,
 NULL,
 'overdue',
 50);
-UPDATE books b
-
-SET available_copies =
-
-total_copies -
-
-(
-
-SELECT COUNT(*)
-
-FROM loans l
-
-WHERE
-
-l.book_id=b.book_id
-
-AND l.return_date IS NULL
-
-);
 -- ============================================================
 -- LIBRARY MANAGEMENT SYSTEM
 -- Part 5B-2
@@ -563,4 +544,5 @@ VALUES
  'Member restored after paying fines.',
  17,
  NULL);
+ 
  

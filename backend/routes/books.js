@@ -2,10 +2,23 @@ const express = require("express");
 
 const router = express.Router();
 
-const booksController = require("../controllers/booksController");
+const books = require("../controllers/booksController");
 
-router.get("/", booksController.getBooks);
+const authMiddleware = require("../middleware/authMiddleware");
 
-router.post("/", booksController.addBook);
+// Protect all book routes
+router.use(authMiddleware);
+
+// -----------------------------
+// Books
+// -----------------------------
+
+router.get("/", books.getBooks);
+
+router.post("/", books.addBook);
+
+router.put("/:id", books.updateBook);
+
+router.delete("/:id", books.deleteBook);
 
 module.exports = router;
