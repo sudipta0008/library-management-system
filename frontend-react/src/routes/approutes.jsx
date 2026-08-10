@@ -7,12 +7,12 @@ import {
 
 import DashboardLayout from "../components/layout/DashboardLayout";
 
-import Dashboard from "../pages/Dashboard";
-import Books from "../pages/Books";
-import Members from "../pages/Members";
-import Loans from "../pages/Loans";
-import Reports from "../pages/Reports";
-import Audit from "../pages/Audit";
+import Dashboard from "../pages/dashboard";
+import Books from "../pages/books";
+import Members from "../pages/members";
+import Loans from "../pages/loans";
+import Reports from "../pages/reports";
+import Audit from "../pages/audit";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 
