@@ -8,7 +8,7 @@ A full-stack **Library Management System** built with a MySQL database backend, 
 
 ## 🌐 Live Demo
 
-🔗 [View Live on Vercel](https://your-app.vercel.app) ← *(update after deploying)*
+🔗 [View Live on Vercel](https://library-management-system-ipnw.vercel.app/) ← *(update after deploying)*
 
 ---
 
