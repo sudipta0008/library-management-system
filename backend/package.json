@@ -16,7 +16,7 @@
     "mysql2": "^3.20.0"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "author": "Sudipta Sarkar",
   "license": "MIT"
